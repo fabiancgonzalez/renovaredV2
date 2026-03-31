@@ -1,5 +1,9 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 
+const localApiUrl = 'http://localhost:3000/api';
+const publicApiBaseUrl = (process.env.PUBLIC_API_URL || '').replace(/\/$/, '');
+const publicApiUrl = publicApiBaseUrl ? `${publicApiBaseUrl}/api` : null;
+
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -18,13 +22,17 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000/api',
+        url: localApiUrl,
         description: 'Servidor de desarrollo',
       },
-      {
-        url: 'https://poner-despues',
-        description: 'Servidor de producción (Vercel)',
-      }
+      ...(publicApiUrl
+        ? [
+            {
+              url: publicApiUrl,
+              description: 'Servidor de producción (Render)',
+            }
+          ]
+        : [])
     ],
     components: {
       securitySchemes: {

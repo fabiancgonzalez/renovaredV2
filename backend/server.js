@@ -8,12 +8,25 @@ const swaggerSpecs = require('./src/config/swagger');
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:4200')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`Origen no permitido por CORS: ${origin}`));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  credentials: true
+};
+
 const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:4200",
-    methods: ["GET", "POST"],
-    credentials: true
-  }
+  cors: corsOptions
 });
 
 // ========== EXPORTAR IO ==========
@@ -24,7 +37,7 @@ module.exports.io = io;
 require('./src/websocket')(io);
 
 // ========== MIDDLEWARES ==========
-app.use(cors());
+app.use(cors(corsOptions));
 
 // Configurar límites altos para payloads grandes (imágenes en base64)
 app.use(express.json({ limit: '50mb' }));
@@ -95,6 +108,7 @@ app.use((req, res) => {
 
 // Puerto
 const PORT = process.env.PORT || 3000;
+const publicBaseUrl = (process.env.PUBLIC_API_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
 
 // Configuración adicional del servidor
 server.maxHeadersCount = 2000;
@@ -103,9 +117,9 @@ server.timeout = 120000;
 // Iniciar servidor
 server.listen(PORT, () => {
     console.log(`==========RenovaRed==========`);
-    console.log(` - RenovaRed activo en: http://localhost:${PORT}`);
-    console.log(` - Health check: http://localhost:${PORT}/api/health`);
-    console.log(` - Swagger: http://localhost:${PORT}/api-docs`);
-    console.log(` - Swagger JSON: http://localhost:${PORT}/api-docs.json`);
+    console.log(` - RenovaRed activo en: ${publicBaseUrl}`);
+    console.log(` - Health check: ${publicBaseUrl}/api/health`);
+    console.log(` - Swagger: ${publicBaseUrl}/api-docs`);
+    console.log(` - Swagger JSON: ${publicBaseUrl}/api-docs.json`);
     console.log(`============================`);
 });
