@@ -1,0 +1,58 @@
+<header class="app-header">
+    <nav class="navbar">
+        <div class="logo" (click)="goHome()" style="cursor: pointer;">
+            <img src="/logoRenovared.png" alt="RenovaRed">
+        </div>
+
+        <!-- Menu hamburguesa -->
+        <button class="hamburger" (click)="toggleMenu()" [class.active]="mobileMenuOpen">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Menú principal -->
+        <div class="nav-links" [class.mobile-open]="mobileMenuOpen">
+            <!-- Links para SI logueados -->
+            <ng-container *ngIf="isAuthenticated">
+                <a routerLink="/" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="active" class="nav-link" (click)="goHome()">Inicio</a>
+                <a routerLink="/marketplace" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Marketplace</a>
+                <a *ngIf="isAdmin" routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Dashboard</a>
+                <a routerLink="/chat" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Chat</a>
+                <a routerLink="/maps" routerLinkActive="active" class="nav-link" (click)="closeMenu()">Mapa</a>
+                
+                <!-- Menú desplegable -->
+                <div class="dropdown">
+                    <button class="dropdown-toggle" (click)="toggleDropdown()">
+                        <div class="user-avatar">
+                            <img [src]="getAvatarSrc(userAvatar)" 
+                                 alt="Avatar"
+                                 (error)="handleAvatarError($event)">
+                        </div>
+                        <span class="user-name">{{ userName }}</span>
+                        <i class="fa-solid fa-chevron-down" [class.rotated]="dropdownOpen"></i>
+                    </button>
+                    
+                    <div class="dropdown-menu" *ngIf="dropdownOpen">
+                        <a routerLink="/profile" class="dropdown-item" (click)="closeMenu(); closeDropdown()">
+                            <i class="fa-regular fa-user"></i>
+                            Mi perfil
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout" (click)="logout()">
+                            <i class="fa-solid fa-sign-out-alt"></i>
+                            Cerrar sesión
+                        </button>
+                    </div>
+                </div>
+            </ng-container>
+
+            <!-- Links para NO logueados -->
+            <ng-container *ngIf="!isAuthenticated">
+                <a routerLink="/" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Inicio</a>
+                <a routerLink="/login" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Ingresar</a>
+                <a routerLink="/register" routerLinkActive="active" class="nav-link" (click)="onNavLinkClick()">Registrarse</a>
+            </ng-container>
+        </div>
+    </nav>
+</header>

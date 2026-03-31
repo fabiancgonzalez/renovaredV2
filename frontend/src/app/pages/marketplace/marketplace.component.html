@@ -1,0 +1,82 @@
+<main class="marketplace">
+	<section class="marketplace-hero">
+		<div>
+			<p class="eyebrow">Panel de publicaciones</p>
+			<h1>Marketplace</h1>
+			<p class="hero-copy">Administrá tus publicaciones desde páginas separadas para publicar, ver tus materiales y explorar el catálogo.</p>
+		</div>
+
+		<div class="hero-actions">
+			<button *ngIf="canManagePublications" class="btn-primary" type="button" (click)="goToCreatePublication()">
+				Nueva publicación
+			</button>
+
+			<button *ngIf="canManagePublications" class="btn-secondary" type="button" (click)="goToMyPublications()">
+				Ver mis publicaciones
+			</button>
+
+			<button class="btn-secondary" type="button" (click)="goToExploreMaterials()">
+				Explorar materiales
+			</button>
+
+			<button *ngIf="!canManagePublications" class="btn-primary" type="button" (click)="goToLogin()">
+				Iniciar sesión para publicar
+			</button>
+		</div>
+	</section>
+
+	<p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+	<p *ngIf="successMessage" class="success">{{ successMessage }}</p>
+	<p *ngIf="loading" class="info">Cargando publicaciones...</p>
+
+	<section class="section-todas-publicaciones">
+		<h2>Todas las publicaciones</h2>
+
+		<div *ngIf="!loading && allPublications.length === 0" class="empty">
+			No hay publicaciones disponibles.
+		</div>
+
+		<div class="cards" *ngIf="!loading && allPublications.length > 0">
+			<article class="card" *ngFor="let publication of allPublications">
+				<img class="card-image" *ngIf="publication.imagenes?.length" [src]="publication.imagenes?.[0]" alt="Imagen del producto publicado">
+				<h3>{{ publication.titulo }}</h3>
+				<p class="description">{{ publication.descripcion || 'Sin descripción' }}</p>
+				<p class="meta">Publicado por: {{ publication.usuario?.nombre || 'Usuario' }}</p>
+				<div class="category-badge" [style.border-color]="publication.categoria?.color || 'rgba(255,255,255,0.25)'">
+					<span class="category-dot" [style.background-color]="publication.categoria?.color || 'rgba(255,255,255,0.45)'"></span>
+					<span class="category-name">{{ getCategoryNameEs(publication.categoria) }}</span>
+				</div>
+				<p class="meta">Estado: {{ publication.estado || 'N/D' }}</p>
+				<p class="meta" *ngIf="publication.precio">Precio: ${{ publication.precio }}</p>
+
+				<div class="card-actions">
+					<button type="button" (click)="togglePublicationDetail(publication.id)">
+						{{ isPublicationDetailVisible(publication.id) ? 'Ocultar' : 'Ver' }}
+					</button>
+
+					<button class="btn-primary"
+						type="button"
+						*ngIf="canContact(publication)"
+						[disabled]="contactingPublicationId === publication.id"
+						(click)="contactOwner(publication)">
+						{{ contactingPublicationId === publication.id ? 'Contactando...' : 'Contactar usuario' }}
+					</button>
+
+					<button
+						type="button"
+						*ngIf="shouldPromptLoginForContact(publication)"
+						(click)="goToLogin()">
+						Iniciar sesión para contactar
+					</button>
+				</div>
+
+				<div class="card-detail" *ngIf="isPublicationDetailVisible(publication.id)">
+					<p class="meta">Cantidad: {{ publication.cantidad || 'N/D' }}</p>
+					<p class="meta">Ubicación: {{ publication.ubicacion_texto || 'Sin detalle' }}</p>
+				</div>
+			</article>
+		</div>
+	</section>
+
+
+</main>
