@@ -7,6 +7,16 @@ const UserDTO = require('../dtos/user.dto');
 
 const GOOGLE_DEFAULT_USER_TYPE = 'Persona';
 
+const getJwtSecret = () => {
+  if (!process.env.JWT_SECRET) {
+    const error = new Error('JWT_SECRET no está configurado en el servidor');
+    error.statusCode = 500;
+    throw error;
+  }
+
+  return process.env.JWT_SECRET;
+};
+
 const getGoogleClient = () => {
   if (!process.env.GOOGLE_CLIENT_ID) {
     return null;
@@ -21,7 +31,7 @@ const generateToken = (user) => jwt.sign(
     email: user.email,
     tipo: user.tipo
   },
-  process.env.JWT_SECRET,
+  getJwtSecret(),
   { expiresIn: '7d' }
 );
 
@@ -120,7 +130,8 @@ const login = async (req, res) => {
     }
 
     // Buscar usuario por email
-    const user = await User.findOne({ where: { email } });
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ where: { email: normalizedEmail } });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -133,6 +144,13 @@ const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'Usuario desactivado. Contacte al administrador'
+      });
+    }
+
+    if (!user.password_hash) {
+      return res.status(401).json({
+        success: false,
+        message: 'Esta cuenta no tiene una contraseña local configurada'
       });
     }
 
@@ -161,7 +179,7 @@ const login = async (req, res) => {
     console.error('Error en login:', error);
     res.status(500).json({
       success: false,
-      message: 'Error al iniciar sesión',
+      message: error.message || 'Error al iniciar sesión',
       error: error.message
     });
   }
@@ -248,7 +266,7 @@ const googleLogin = async (req, res) => {
     console.error('Error en login con Google:', error);
     res.status(500).json({
       success: false,
-      message: 'Error al iniciar sesión con Google',
+      message: error.message || 'Error al iniciar sesión con Google',
       error: error.message
     });
   }

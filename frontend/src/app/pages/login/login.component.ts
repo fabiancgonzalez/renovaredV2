@@ -73,6 +73,23 @@ export class LoginComponent implements OnInit, AfterViewInit {
     setTimeout(() => this.infoMessage = '', 3000);
   }
 
+  private getApiErrorMessage(err: any, fallback: string): string {
+    const apiMessage = err?.error?.message || err?.error?.error;
+    if (apiMessage) {
+      return apiMessage;
+    }
+
+    if (err?.status === 0) {
+      return 'No se pudo conectar con el servidor';
+    }
+
+    if (err?.status >= 500) {
+      return 'El servidor tuvo un error interno. RevisÃ¡ la configuraciÃ³n del backend en Render';
+    }
+
+    return fallback;
+  }
+
   private async initializeGoogleLogin(): Promise<void> {
     try {
       await this.loadGoogleScript();
@@ -152,7 +169,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           console.error('Error login Google:', err);
-          this.errorMessage = err.error?.message || 'Error al iniciar sesión con Google';
+          this.errorMessage = this.getApiErrorMessage(err, 'Error al iniciar sesión con Google');
           setTimeout(() => this.errorMessage = '', 3000);
           this.loading = false;
         }
@@ -193,7 +210,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           console.error('Error login:', err);
-          this.errorMessage = err.error?.message || 'Error al iniciar sesión';
+          this.errorMessage = this.getApiErrorMessage(err, 'Error al iniciar sesión');
           setTimeout(() => this.errorMessage = '', 3000);
           this.loading = false;
         }
